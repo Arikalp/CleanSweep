@@ -1,0 +1,203 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-slate-900 text-white font-sans;
+  }
+}
+
+@layer components {
+  .camera-container {
+    @apply relative bg-slate-800 border-2 border-dashed border-slate-600;
+  }
+  
+  .capture-button {
+    @apply transition-all duration-200 ease-in-out;
+  }
+  .capture-button:hover {
+    @apply scale-105;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  }
+  .capture-button:active {
+    @apply scale-95;
+  }
+
+  .collector-card {
+    @apply bg-slate-800 border border-slate-700;
+  }
+
+  .spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    width: 24px;
+    height: 24px;
+    animation: spin 1s ease-in-out infinite;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Leaflet specific styles to match Google Maps UI */
+.leaflet-container {
+  background-color: #f4f4f5 !important; /* Light grey backdrop */
+  font-family: inherit;
+}
+
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-radius: 1.25rem !important;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.leaflet-popup-content {
+  margin: 14px !important;
+  line-height: 1.5;
+  color: #334155 !important;
+}
+
+/* Zoom controls Google Maps style override */
+.leaflet-bar {
+  border: none !important;
+  border-radius: 10px !important;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.leaflet-bar a {
+  background-color: #ffffff !important;
+  color: #475569 !important;
+  border: none !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  font-size: 16px !important;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.leaflet-bar a:hover {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.leaflet-bar a.leaflet-disabled {
+  background-color: #f1f5f9 !important;
+  color: #cbd5e1 !important;
+}
+
+/* Close button on popup dark mode */
+.leaflet-container a.leaflet-popup-close-button {
+  color: #64748b !important;
+  font-weight: bold;
+  padding: 8px 10px 0 0 !important;
+}
+
+.leaflet-container a.leaflet-popup-close-button:hover {
+  color: #0f172a !important;
+}
+
+/* Attribution styling */
+.leaflet-container .leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.85) !important;
+  color: #64748b !important;
+  backdrop-filter: blur(4px);
+  padding: 2px 8px !important;
+  border-top-left-radius: 0.5rem;
+}
+
+.leaflet-container .leaflet-control-attribution a {
+  color: #0284c7 !important; /* Sky blue */
+}
+
+/* GPS Pulse Dot for User Location */
+.gps-pulse-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gps-pulse-dot {
+  width: 14px;
+  height: 14px;
+  background-color: #3b82f6;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
+  position: relative;
+}
+
+.gps-pulse-dot::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  right: -6px;
+  bottom: -6px;
+  border: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: gpsPulse 1.8s ease-out infinite;
+  opacity: 0;
+}
+
+@keyframes gpsPulse {
+  0% { transform: scale(0.6); opacity: 0.8; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* Animations for slide-in panels */
+.animate-slide-in-left {
+  animation: slideInLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-in-bottom {
+  animation: slideInBottom 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInBottom {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-tab-transition {
+  animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
