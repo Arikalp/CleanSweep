@@ -15,13 +15,29 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'supabase-vendor': ['@supabase/supabase-js'],
-          'map-vendor': ['leaflet', 'react-leaflet'],
-          'store-vendor': ['zustand'],
-        },
+        // Modern Rolldown chunk-splitting configuration
+        advancedChunks: {
+          groups: [
+            {
+              name: 'react-vendor',
+              test: /\/node_modules\/(react|react-dom|react-router-dom)\//,
+            },
+            {
+              name: 'supabase-vendor',
+              test: /\/node_modules\/@supabase\/supabase-js\//,
+            },
+            {
+              name: 'map-vendor',
+              test: /\/node_modules\/(leaflet|react-leaflet)\//,
+            },
+            {
+              name: 'store-vendor',
+              test: /\/node_modules\/zustand\//,
+            }
+          ]
+        }
       },
     },
   },
 })
+
