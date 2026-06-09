@@ -7,6 +7,7 @@ import Admin from './pages/Admin';
 import Marketplace from './pages/Marketplace';
 import Profile from './pages/Profile';
 import { useCleanStore } from './lib/store';
+import ToastContainer from './components/ToastContainer';
 
 function App() {
   const { session, setSession } = useCleanStore();
@@ -57,6 +58,7 @@ function App() {
 
   return (
     <Router>
+      <ToastContainer />
       <Routes>
         <Route path="/login" element={!session ? <Login /> : <Navigate to="/" />} />
         <Route path="/" element={session ? <Home session={session} isAdmin={isAdmin} /> : <Navigate to="/login" />} />

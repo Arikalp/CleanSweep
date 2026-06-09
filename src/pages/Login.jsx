@@ -1,8 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
-import { Recycle, Mail, Lock, User, AlertCircle } from 'lucide-react';
+import { Mail, Lock, User, CheckCircle2, XCircle } from 'lucide-react';
 
+// ── Animated toast notification card ──────────────────────────────────────────
+function NotificationCard({ message, isError, onDone }) {
+  const [phase, setPhase] = useState('enter'); // enter | show | exit
+
+  useEffect(() => {
+    // After the slide-in (300ms), hold for 2 s, then exit
+    const holdTimer  = setTimeout(() => setPhase('exit'), 2300);
+    const doneTimer  = setTimeout(() => onDone(), 2800);
+    return () => { clearTimeout(holdTimer); clearTimeout(doneTimer); };
+  }, [onDone]);
+
+  const base = [
+    'login-toast',
+    isError ? 'login-toast--error' : 'login-toast--success',
+    phase === 'exit' ? 'login-toast--exit' : 'login-toast--enter',
+  ].join(' ');
+
+  const Icon = isError ? XCircle : CheckCircle2;
+
+  return (
+    <div className={base} role="alert">
+      <div className="login-toast__icon-wrap">
+        <Icon size={20} strokeWidth={2.2} />
+      </div>
+      <p className="login-toast__text">{message}</p>
+      <div className="login-toast__progress" />
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -10,13 +41,12 @@ export default function Login() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [isError, setIsError] = useState(false);
+  const [toast, setToast] = useState(null); // { message, isError }
   const navigate = useNavigate();
 
   const showMsg = (text, error = false) => {
-    setMessage(text);
-    setIsError(error);
+    if (!text) return;
+    setToast({ message: text, isError: error });
   };
 
   const handleAuth = async (e) => {
@@ -168,12 +198,14 @@ export default function Login() {
             {googleLoading ? 'Redirecting...' : 'Continue with Google'}
           </button>
 
-          {/* Message */}
-          {message && (
-            <div className={`flex items-start gap-2 text-sm rounded-lg px-3 py-2 ${isError ? 'bg-red-900/40 border border-red-700 text-red-300' : 'bg-emerald-900/40 border border-emerald-700 text-emerald-300'}`}>
-              <AlertCircle size={15} className="mt-0.5 shrink-0" />
-              <span>{message}</span>
-            </div>
+          {/* Toast notification */}
+          {toast && (
+            <NotificationCard
+              key={toast.message + toast.isError}
+              message={toast.message}
+              isError={toast.isError}
+              onDone={() => setToast(null)}
+            />
           )}
 
           {/* Toggle */}

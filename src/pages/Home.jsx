@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useCleanStore } from '../lib/store';
+import { toast } from '../lib/toast';
 import * as THREE from 'three';
 import { 
   Recycle, 
@@ -294,9 +295,9 @@ export default function Home({ session, isAdmin }) {
         // Award 10 points for daily login!
         addPoints(10);
         
-        // Custom elegant notification popup
+        // Custom elegant notification toast
         setTimeout(() => {
-          alert(`Welcome back, ${profile.full_name || 'Eco-Warrior'}! You've claimed a daily login bonus of +10 CleanPoints! 🌟`);
+          toast.points(`Welcome back, ${profile.full_name || 'Eco-Warrior'}! You've claimed a daily login bonus of +10 CleanPoints! 🌟`, 4000);
         }, 800);
       }
     }
@@ -465,7 +466,7 @@ export default function Home({ session, isAdmin }) {
       setStream(mediaStream);
       if (videoRef.current) videoRef.current.srcObject = mediaStream;
     } catch {
-      alert('Could not access the camera. Please grant camera permission.');
+      toast.error('Could not access the camera. Please grant camera permission.');
     }
   };
 
@@ -545,7 +546,7 @@ export default function Home({ session, isAdmin }) {
     const coords = pos.status === 'fulfilled' ? pos.value.coords : null;
 
     if (!garbage) {
-      alert('Image rejected by AI. Please take a clear photo of garbage.');
+      toast.error('Image rejected by AI. Please take a clear photo of garbage.');
       setStep('camera');
       setPhoto(null);
       setLocation(null);
@@ -554,7 +555,7 @@ export default function Home({ session, isAdmin }) {
     }
 
     if (!coords) {
-      alert('Could not get your location. Please enable GPS/location services and try again.');
+      toast.error('Could not get your location. Please enable GPS/location services and try again.');
       setStep('camera');
       setPhoto(null);
       startCamera();
@@ -675,13 +676,13 @@ export default function Home({ session, isAdmin }) {
           .update({ status: 'archived' })
           .eq('id', report.id);
         if (updateError) throw updateError;
-        alert('Report has been canceled.');
+        toast.info('Report has been canceled.');
       } else {
-        alert('Report canceled successfully.');
+        toast.success('Report canceled successfully.');
       }
       fetchReports();
     } catch (err) {
-      alert(`Error canceling report: ${err.message}`);
+      toast.error(`Error canceling report: ${err.message}`);
     }
   };
 
@@ -698,7 +699,7 @@ export default function Home({ session, isAdmin }) {
         prev.map((r) => (r.id === id ? { ...r, user_feedback: feedbackText } : r))
       );
     } catch (err) {
-      alert(`Error sending response: ${err.message}. Please verify the user_feedback column exists in your public.reports table.`);
+      toast.error(`Error sending response: ${err.message}. Please verify the user_feedback column exists in your public.reports table.`);
     }
   };
 
@@ -717,9 +718,9 @@ export default function Home({ session, isAdmin }) {
       setAllReports((prev) =>
         prev.map((r) => (r.id === id ? { ...r, status: 'done' } : r))
       );
-      alert('Thank you for verifying! Report has been fully resolved.');
+      toast.success('Thank you for verifying! Report has been fully resolved.');
     } catch (err) {
-      alert(`Error confirming: ${err.message}`);
+      toast.error(`Error confirming: ${err.message}`);
     }
   };
 
@@ -737,16 +738,16 @@ export default function Home({ session, isAdmin }) {
       setAllReports((prev) =>
         prev.map((r) => (r.id === id ? { ...r, status: 'pending', user_feedback: `Rejected: ${feedback}` } : r))
       );
-      alert('Report has been reopened and set back to pending cleanup.');
+      toast.info('Report has been reopened and set back to pending cleanup.');
     } catch (err) {
-      alert(`Error reopening: ${err.message}`);
+      toast.error(`Error reopening: ${err.message}`);
     }
   };
 
   const handleShareReport = (report) => {
     const shareUrl = `${window.location.origin}/?reportId=${report.id}`;
     navigator.clipboard.writeText(shareUrl);
-    alert(`Link to Report #${report.id} copied to clipboard! 📋`);
+    toast.success(`Link to Report #${report.id} copied to clipboard! 📋`);
   };
 
   // ── Civic Community Actions: Upvote & Discuss ────────────────────
@@ -775,7 +776,7 @@ export default function Home({ session, isAdmin }) {
       setUpvotedIds(newUpvotedList);
       localStorage.setItem('upvotedReports', JSON.stringify(newUpvotedList));
     } catch (err) {
-      alert(`Error raising voice: ${err.message}. Make sure you run the SQL migration to add upvotes column.`);
+      toast.error(`Error raising voice: ${err.message}. Make sure you run the SQL migration to add upvotes column.`);
     }
   };
 
