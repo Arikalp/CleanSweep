@@ -531,3 +531,18 @@
   from { transform: scaleX(1); }
   to   { transform: scaleX(0); }
 }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #111412; /* Theme surface color */
+}
+::-webkit-scrollbar-thumb {
+  background: #41eec2; /* Emerald green theme color */
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #28dfb5; /* Darker emerald on hover */
+}

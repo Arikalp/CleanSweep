@@ -1640,7 +1640,7 @@ export default function Home({ session, isAdmin }) {
             </div>
 
             {/* Immersive Google Maps Container */}
-            <div className="relative w-full h-[600px] sm:h-[650px] border border-slate-700/60 rounded-3xl overflow-hidden shadow-2xl bg-slate-950 flex flex-col z-10">
+            <div className="relative w-full h-[690px] sm:h-[750px] border border-slate-700/60 rounded-3xl overflow-hidden shadow-2xl bg-slate-950 flex flex-col z-10">
               
               {/* Leaflet Map Canvas */}
               <div ref={areaMapContainerRef} className="w-full h-full z-0" />
