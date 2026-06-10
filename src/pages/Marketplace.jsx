@@ -2,13 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as THREE from 'three';
 import { 
-  X, 
   Star, 
   CheckCircle2, 
   Leaf, 
   Store, 
   ArrowLeft,
-  Award,
   Phone,
   MessageSquare,
   User

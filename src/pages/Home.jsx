@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import L from 'leaflet';
@@ -7,7 +7,6 @@ import { useCleanStore } from '../lib/store';
 import { toast } from '../lib/toast';
 import * as THREE from 'three';
 import { 
-  Recycle, 
   Store, 
   User, 
   Camera, 
@@ -26,11 +25,8 @@ import {
   Megaphone,
   MessageSquare,
   Search,
-  Layers,
   Locate,
   Check,
-  ExternalLink,
-  Share2,
   Compass,
   Award,
   Leaf
@@ -288,7 +284,9 @@ export default function Home({ session, isAdmin }) {
 
   useEffect(() => {
     if (routerLocation.state?.viewMode) {
-      setViewMode(routerLocation.state.viewMode);
+      setTimeout(() => {
+        setViewMode(routerLocation.state.viewMode);
+      }, 0);
     }
   }, [routerLocation.state]);
 
@@ -346,7 +344,14 @@ export default function Home({ session, isAdmin }) {
   // Community Feed Filters & states
   const [communitySort, setCommunitySort] = useState('latest'); // 'latest' | 'voices'
   const [communityArea, setCommunityArea] = useState('__all__');
-  const [upvotedIds, setUpvotedIds] = useState([]);
+  const [upvotedIds, setUpvotedIds] = useState(() => {
+    try {
+      const storedUpvotes = localStorage.getItem('upvotedReports');
+      return storedUpvotes ? JSON.parse(storedUpvotes) : [];
+    } catch {
+      return [];
+    }
+  });
   const [expandedComments, setExpandedComments] = useState({}); // { [reportId]: boolean }
   const [commentInputs, setCommentInputs] = useState({}); // { [reportId]: string }
 
@@ -356,28 +361,7 @@ export default function Home({ session, isAdmin }) {
   const modalMapContainerRef = useRef(null);
   const modalMapRef = useRef(null);
 
-  // ── Fetch reports on mount / session change ──────────────────────
-  const fetchReports = async () => {
-    try {
-      setLoadingReports(true);
-      const { data, error } = await supabase
-        .from('reports')
-        .select('*')
-        .order('timestamp', { ascending: false });
-
-      if (!error && data) {
-        setAllReports(data);
-      }
-      // Fetch leaderboard
-      fetchTopContributors();
-    } catch (err) {
-      console.error('Failed to load reports', err);
-    } finally {
-      setLoadingReports(false);
-    }
-  };
-
-  const fetchTopContributors = async () => {
+  const fetchTopContributors = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -405,16 +389,32 @@ export default function Home({ session, isAdmin }) {
         { full_name: profile?.full_name || 'You', points: profile?.points || 120, level: profile?.level || 'Silver Trash Tracker' }
       ].sort((a, b) => b.points - a.points));
     }
-  };
+  }, [profile]);
+
+  const fetchReports = useCallback(async () => {
+    try {
+      setLoadingReports(true);
+      const { data, error } = await supabase
+        .from('reports')
+        .select('*')
+        .order('timestamp', { ascending: false });
+
+      if (!error && data) {
+        setAllReports(data);
+      }
+      // Fetch leaderboard
+      fetchTopContributors();
+    } catch (err) {
+      console.error('Failed to load reports', err);
+    } finally {
+      setLoadingReports(false);
+    }
+  }, [fetchTopContributors]);
 
   useEffect(() => {
-    fetchReports();
-
-    // Load upvoted IDs from localStorage
-    const storedUpvotes = localStorage.getItem('upvotedReports');
-    if (storedUpvotes) {
-      setUpvotedIds(JSON.parse(storedUpvotes));
-    }
+    setTimeout(() => {
+      fetchReports();
+    }, 0);
 
     // Subscribe to database updates for reports
     const reportsChannel = supabase
@@ -435,7 +435,7 @@ export default function Home({ session, isAdmin }) {
     return () => {
       supabase.removeChannel(reportsChannel);
     };
-  }, []);
+  }, [fetchReports]);
 
   // Parse query parameters and center map on report
   useEffect(() => {
@@ -446,9 +446,11 @@ export default function Home({ session, isAdmin }) {
         const rId = parseInt(reportIdParam, 10);
         const found = allReports.find(r => r.id === rId);
         if (found) {
-          setSelectedMapReport(found);
-          setViewMode('explore-map');
-          setInitialUrlCheckDone(true);
+          setTimeout(() => {
+            setSelectedMapReport(found);
+            setViewMode('explore-map');
+            setInitialUrlCheckDone(true);
+          }, 0);
         }
       }
     }
@@ -749,12 +751,6 @@ export default function Home({ session, isAdmin }) {
     } catch (err) {
       toast.error(`Error reopening: ${err.message}`);
     }
-  };
-
-  const handleShareReport = (report) => {
-    const shareUrl = `${window.location.origin}/?reportId=${report.id}`;
-    navigator.clipboard.writeText(shareUrl);
-    toast.success(`Link to Report #${report.id} copied to clipboard! 📋`);
   };
 
   // ── Civic Community Actions: Upvote & Discuss ────────────────────

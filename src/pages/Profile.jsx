@@ -1,23 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useCleanStore } from '../lib/store';
 import { 
   ArrowLeft, 
-  Store, 
   ShieldCheck, 
-  User, 
   Mail, 
   Award, 
   Leaf, 
-  MapPin, 
   CheckCircle2, 
   Clock, 
   AlertTriangle, 
   Edit2, 
   Check, 
-  X,
-  MessageSquare
+  X
 } from 'lucide-react';
 
 export default function Profile() {
@@ -36,17 +32,7 @@ export default function Profile() {
   // Filter history
   const [statusFilter, setStatusFilter] = useState('all'); // all | pending | cleared_by_admin | done
 
-  useEffect(() => {
-    if (!session?.user) {
-      navigate('/login');
-      return;
-    }
-    fetchProfile();
-    fetchUserReports();
-    loadCertificates();
-  }, [session, navigate, fetchProfile]);
-
-  const fetchUserReports = async () => {
+  const fetchUserReports = useCallback(async () => {
     if (!session?.user) return;
     setLoadingReports(true);
     try {
@@ -64,14 +50,26 @@ export default function Profile() {
     } finally {
       setLoadingReports(false);
     }
-  };
+  }, [session]);
 
-  const loadCertificates = () => {
+  const loadCertificates = useCallback(() => {
     if (!session?.user) return;
     const key = `certificates_${session.user.id}`;
     const certData = JSON.parse(localStorage.getItem(key) || '[]');
     setCertificates(certData);
-  };
+  }, [session]);
+
+  useEffect(() => {
+    if (!session?.user) {
+      navigate('/login');
+      return;
+    }
+    setTimeout(() => {
+      fetchProfile();
+      fetchUserReports();
+      loadCertificates();
+    }, 0);
+  }, [session, navigate, fetchProfile, fetchUserReports, loadCertificates]);
 
   const handleSaveName = async () => {
     if (!newName.trim()) return;

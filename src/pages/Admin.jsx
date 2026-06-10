@@ -4,8 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { 
-  Recycle, 
-  ShieldCheck, 
   User, 
   LogOut, 
   ArrowLeft,
@@ -14,18 +12,60 @@ import {
   CheckCircle, 
   Archive, 
   RotateCcw, 
-  AlertTriangle, 
   FileSpreadsheet, 
   Bell, 
   X, 
   SlidersHorizontal,
   Search,
-  Layers,
   Locate,
   Check,
-  ExternalLink,
-  Compass
+  Compass,
+  Clock,
+  Megaphone
 } from 'lucide-react';
+
+const createToastContainer = () => {
+  const el = document.createElement('div');
+  el.id = 'admin-toast-container';
+  el.className = 'fixed bottom-6 right-6 flex flex-col gap-3 z-[9999]';
+  document.body.appendChild(el);
+  return el;
+};
+
+const showNotificationAlert = (title, body) => {
+  if ("Notification" in window) {
+    if (Notification.permission === 'granted') {
+      new Notification(title, { body });
+    } else if (Notification.permission === 'default') {
+      Notification.requestPermission().then((permission) => {
+        if (permission === 'granted') new Notification(title, { body });
+      });
+    }
+  }
+  
+  // Fallback UI toast
+  const container = document.getElementById('admin-toast-container') || createToastContainer();
+  const toast = document.createElement('div');
+  toast.className = 'bg-emerald-600 border border-emerald-500 text-white px-5 py-3 rounded-xl shadow-2xl flex flex-col gap-1 transition-all duration-300 transform translate-y-2 opacity-0 font-medium text-sm max-w-sm';
+  toast.innerHTML = `
+    <div class="font-bold flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-red-400 animate-ping"></span>
+      ${title}
+    </div>
+    <div class="text-xs text-emerald-100">${body}</div>
+  `;
+  container.appendChild(toast);
+  
+  // Trigger transition
+  requestAnimationFrame(() => {
+    toast.classList.remove('translate-y-2', 'opacity-0');
+  });
+
+  setTimeout(() => {
+    toast.classList.add('translate-y-2', 'opacity-0');
+    setTimeout(() => toast.remove(), 400);
+  }, 4500);
+};
 
 export default function Admin({ session }) {
   const navigate = useNavigate();
@@ -39,8 +79,30 @@ export default function Admin({ session }) {
   const [searchQuery, setSearchQuery] = useState('');
   
   // Local Notifications state
-  const [notifyEmail, setNotifyEmail] = useState('');
-  const [notifyPhone, setNotifyPhone] = useState('');
+  const [notifyEmail, setNotifyEmail] = useState(() => {
+    const storedNotify = localStorage.getItem('notificationConfig');
+    if (storedNotify) {
+      try {
+        const parsed = JSON.parse(storedNotify);
+        return parsed.email || '';
+      } catch {
+        return '';
+      }
+    }
+    return '';
+  });
+  const [notifyPhone, setNotifyPhone] = useState(() => {
+    const storedNotify = localStorage.getItem('notificationConfig');
+    if (storedNotify) {
+      try {
+        const parsed = JSON.parse(storedNotify);
+        return parsed.phone || '';
+      } catch {
+        return '';
+      }
+    }
+    return '';
+  });
   const [notifyStatus, setNotifyStatus] = useState('');
 
   // Profile Modal state
@@ -75,17 +137,11 @@ export default function Admin({ session }) {
 
   // Load configuration and data on mount
   useEffect(() => {
-    // Load local notification preferences
-    const storedNotify = localStorage.getItem('notificationConfig');
-    if (storedNotify) {
-      const parsed = JSON.parse(storedNotify);
-      setNotifyEmail(parsed.email || '');
-      setNotifyPhone(parsed.phone || '');
-    }
-
     // Load user profile details
     if (session?.user) {
-      setProfileEmail(session.user.email);
+      setTimeout(() => {
+        setProfileEmail(session.user.email);
+      }, 0);
       supabase
         .from('profiles')
         .select('full_name')
@@ -159,49 +215,7 @@ export default function Admin({ session }) {
     };
   }, [session]);
 
-  // Show browser alert toast
-  const showNotificationAlert = (title, body) => {
-    if ("Notification" in window) {
-      if (Notification.permission === 'granted') {
-        new Notification(title, { body });
-      } else if (Notification.permission === 'default') {
-        Notification.requestPermission().then((permission) => {
-          if (permission === 'granted') new Notification(title, { body });
-        });
-      }
-    }
-    
-    // Fallback UI toast
-    const container = document.getElementById('admin-toast-container') || createToastContainer();
-    const toast = document.createElement('div');
-    toast.className = 'bg-emerald-600 border border-emerald-500 text-white px-5 py-3 rounded-xl shadow-2xl flex flex-col gap-1 transition-all duration-300 transform translate-y-2 opacity-0 font-medium text-sm max-w-sm';
-    toast.innerHTML = `
-      <div class="font-bold flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-red-400 animate-ping"></span>
-        ${title}
-      </div>
-      <div class="text-xs text-emerald-100">${body}</div>
-    `;
-    container.appendChild(toast);
-    
-    // Trigger transition
-    requestAnimationFrame(() => {
-      toast.classList.remove('translate-y-2', 'opacity-0');
-    });
 
-    setTimeout(() => {
-      toast.classList.add('translate-y-2', 'opacity-0');
-      setTimeout(() => toast.remove(), 400);
-    }, 4500);
-  };
-
-  const createToastContainer = () => {
-    const el = document.createElement('div');
-    el.id = 'admin-toast-container';
-    el.className = 'fixed bottom-6 right-6 flex flex-col gap-3 z-[9999]';
-    document.body.appendChild(el);
-    return el;
-  };
 
   // ── Google Maps Geocoding & Locate Me Handlers (Admin) ──────────────
   const handleMapSearch = async (e) => {
@@ -404,7 +418,7 @@ export default function Admin({ session }) {
           }
         });
     });
-  }, [reports, municipalFilter, statusFilter, searchQuery]);
+  }, [reports, municipalFilter, statusFilter, searchQuery, selectedMapReport]);
 
   // Actions handlers
   const handleStatusChange = async (id, newStatus) => {
