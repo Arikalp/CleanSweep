@@ -48,7 +48,7 @@ export default function Landing() {
         <nav className="flex justify-between items-center max-w-[1440px] mx-auto px-6 md:px-container-margin-desktop h-20">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
             <img alt="CleanSweep Logo" className="h-10 w-10 filter drop-shadow-[0_0_8px_rgba(65,238,194,0.5)]" src={cleanSweepLogo} />
-            <span className="font-headline-md text-headline-md font-bold text-on-surface tracking-tighter">CleanSweep</span>
+            <span className="font-headline-md text-headline-md font-extrabold text-on-surface tracking-tighter filter drop-shadow-[0_0_10px_rgba(65,238,194,0.2)]">CleanSweep</span>
           </div>
 
           <div className="hidden md:flex items-center gap-stack-md">
@@ -94,11 +94,11 @@ export default function Landing() {
         <section className="relative min-h-screen flex items-center pt-20 px-6 md:px-container-margin-desktop max-w-[1440px] mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-stack-lg items-center w-full">
             <div className="reveal">
-              <h1 className="font-headline-xl text-headline-xl mb-stack-sm leading-tight text-white">
+              <h1 className="font-headline-xl text-headline-xl sm:text-5xl md:text-6xl lg:text-7xl mb-stack-sm leading-tight text-white font-black tracking-tight">
                 Clean Cities Start <br />
-                <span className="text-secondary filter drop-shadow-[0_0_8px_rgba(65,238,194,0.3)]">With You</span>
+                <span className="text-secondary filter drop-shadow-[0_0_12px_rgba(65,238,194,0.4)]">With You</span>
               </h1>
-              <p className="text-on-surface-variant font-body-lg text-body-lg mb-stack-lg max-w-lg">
+              <p className="text-on-surface-variant/90 font-body-lg text-body-lg mb-stack-lg max-w-xl font-medium leading-relaxed">
                 Report garbage, track cleanups, and earn rewards — all in one advanced civic infrastructure platform.
               </p>
               <div className="flex flex-wrap gap-stack-md">
@@ -144,8 +144,8 @@ export default function Landing() {
         {/* Features Section (Bento Grid) */}
         <section className="py-32 px-6 md:px-container-margin-desktop max-w-[1440px] mx-auto">
           <div className="text-center mb-20 reveal">
-            <h2 className="font-headline-lg text-headline-lg mb-stack-sm text-white">A Complete Civic Ecosystem</h2>
-            <p className="text-on-surface-variant max-w-2xl mx-auto">
+            <h2 className="font-headline-lg text-headline-lg sm:text-4xl md:text-5xl mb-stack-sm text-white font-extrabold tracking-tight">A Complete Civic Ecosystem</h2>
+            <p className="text-on-surface-variant/95 max-w-2xl mx-auto font-medium text-lg">
               Smarter infrastructure management powered by community participation and real-time data.
             </p>
           </div>
@@ -155,8 +155,8 @@ export default function Landing() {
             <div className="md:col-span-2 glass-card p-8 md:p-stack-lg rounded-xl glow-hover flex flex-col justify-between group cursor-pointer" onClick={handleSignIn}>
               <div>
                 <span className="material-symbols-outlined text-secondary text-5xl mb-6 group-hover:scale-110 transition-transform filter drop-shadow-[0_0_6px_rgba(65,238,194,0.3)]">report</span>
-                <h3 className="font-headline-md text-headline-md mb-2 text-white">Report Garbage</h3>
-                <p className="text-on-surface-variant text-sm md:text-base">
+                <h3 className="font-headline-md text-headline-md mb-2 text-white font-bold tracking-tight">Report Garbage</h3>
+                <p className="text-on-surface-variant/90 text-sm md:text-base font-medium">
                   Snap a photo of litter or overflowing bins and our AI will automatically geo-tag and categorize the report for city services.
                 </p>
               </div>
@@ -166,8 +166,8 @@ export default function Landing() {
             <div className="glass-card p-6 md:p-stack-md rounded-xl glow-hover flex flex-col justify-between group cursor-pointer" onClick={handleExploreMap}>
               <div>
                 <span className="material-symbols-outlined text-secondary text-4xl mb-4 group-hover:scale-115 transition-transform">map</span>
-                <h3 className="font-headline-md text-headline-md mb-2 text-white">Explore Map</h3>
-                <p className="text-on-surface-variant text-sm">
+                <h3 className="font-headline-md text-headline-md mb-2 text-white font-bold tracking-tight">Explore Map</h3>
+                <p className="text-on-surface-variant/90 text-sm font-medium">
                   Real-time heatmaps of city cleanliness and active cleanup zones.
                 </p>
               </div>
@@ -177,8 +177,8 @@ export default function Landing() {
             <div className="glass-card p-6 md:p-stack-md rounded-xl glow-hover flex flex-col justify-between group cursor-pointer" onClick={handleSignIn}>
               <div>
                 <span className="material-symbols-outlined text-secondary text-4xl mb-4 group-hover:scale-115 transition-transform">groups</span>
-                <h3 className="font-headline-md text-headline-md mb-2 text-white">Community Feed</h3>
-                <p className="text-on-surface-variant text-sm">
+                <h3 className="font-headline-md text-headline-md mb-2 text-white font-bold tracking-tight">Community Feed</h3>
+                <p className="text-on-surface-variant/90 text-sm font-medium">
                   Join local cleanup events and connect with eco-conscious neighbors.
                 </p>
               </div>
@@ -188,8 +188,8 @@ export default function Landing() {
             <div className="glass-card p-6 md:p-stack-md rounded-xl glow-hover flex flex-col justify-between group cursor-pointer" onClick={handleSignIn}>
               <div>
                 <span className="material-symbols-outlined text-secondary text-4xl mb-4 group-hover:scale-115 transition-transform">leaderboard</span>
-                <h3 className="font-headline-md text-headline-md mb-2 text-white">Leaderboard</h3>
-                <p className="text-on-surface-variant text-sm">
+                <h3 className="font-headline-md text-headline-md mb-2 text-white font-bold tracking-tight">Leaderboard</h3>
+                <p className="text-on-surface-variant/90 text-sm font-medium">
                   Climb the ranks of your city's top environmental guardians.
                 </p>
               </div>
@@ -199,8 +199,8 @@ export default function Landing() {
             <div className="md:col-span-2 glass-card p-8 md:p-stack-lg rounded-xl glow-hover flex flex-col justify-between group cursor-pointer" onClick={handleExploreMap}>
               <div>
                 <span className="material-symbols-outlined text-secondary text-5xl mb-6 group-hover:scale-110 transition-transform filter drop-shadow-[0_0_6px_rgba(65,238,194,0.3)]">shopping_cart</span>
-                <h3 className="font-headline-md text-headline-md mb-2 text-white">Marketplace</h3>
-                <p className="text-on-surface-variant text-sm md:text-base">
+                <h3 className="font-headline-md text-headline-md mb-2 text-white font-bold tracking-tight">Marketplace</h3>
+                <p className="text-on-surface-variant/90 text-sm md:text-base font-medium">
                   Redeem your CleanSweep points for eco-friendly products, local transport credits, and municipal tax discounts.
                 </p>
               </div>
@@ -210,8 +210,8 @@ export default function Landing() {
             <div className="glass-card p-6 md:p-stack-md rounded-xl glow-hover flex flex-col justify-between group cursor-pointer" onClick={handleSignIn}>
               <div>
                 <span className="material-symbols-outlined text-secondary text-4xl mb-4 group-hover:scale-115 transition-transform">person</span>
-                <h3 className="font-headline-md text-headline-md mb-2 text-white">Profile</h3>
-                <p className="text-on-surface-variant text-sm">
+                <h3 className="font-headline-md text-headline-md mb-2 text-white font-bold tracking-tight">Profile</h3>
+                <p className="text-on-surface-variant/90 text-sm font-medium">
                   Track your impact, badges, and personal cleanup history.
                 </p>
               </div>
@@ -223,8 +223,8 @@ export default function Landing() {
                 <span className="material-symbols-outlined text-secondary text-4xl filter drop-shadow-[0_0_4px_rgba(65,238,194,0.3)]">dashboard</span>
               </div>
               <div>
-                <h3 className="font-headline-md text-headline-md text-white">Admin Dashboard</h3>
-                <p className="text-on-surface-variant text-sm">
+                <h3 className="font-headline-md text-headline-md text-white font-bold tracking-tight">Admin Dashboard</h3>
+                <p className="text-on-surface-variant/90 text-sm font-medium">
                   Municipal tools for dispatching crews, analyzing data trends, and managing civic rewards.
                 </p>
               </div>
@@ -235,31 +235,31 @@ export default function Landing() {
         {/* How It Works Section */}
         <section className="py-32 px-6 md:px-container-margin-desktop max-w-[1440px] mx-auto overflow-hidden">
           <div className="text-center mb-20 reveal">
-            <h2 className="font-headline-lg text-headline-lg mb-stack-sm text-white">The Clean Cycle</h2>
-            <p className="text-on-surface-variant">Join the movement in three simple steps.</p>
+            <h2 className="font-headline-lg text-headline-lg sm:text-4xl md:text-5xl mb-stack-sm text-white font-extrabold tracking-tight">The Clean Cycle</h2>
+            <p className="text-on-surface-variant font-medium text-lg">Join the movement in three simple steps.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-y-16 md:gap-stack-lg relative">
             <div className="text-center flex flex-col items-center reveal relative z-10">
               <div className="w-16 h-16 rounded-full bg-secondary text-on-secondary flex items-center justify-center font-bold text-2xl mb-6 shadow-[0_0_20px_rgba(65,238,194,0.5)]">1</div>
-              <h3 className="font-headline-md text-headline-md mb-4 text-white">Snap &amp; Report</h3>
-              <p className="text-on-surface-variant text-sm md:text-base max-w-xs">
+              <h3 className="font-headline-md text-headline-md mb-4 text-white font-bold">Snap &amp; Report</h3>
+              <p className="text-on-surface-variant/90 text-sm md:text-base max-w-xs font-medium">
                 See litter? Take a quick photo via the CleanSweep app. AI handles the rest.
               </p>
             </div>
 
             <div className="text-center flex flex-col items-center reveal relative z-10 md:mt-12">
               <div className="w-16 h-16 rounded-full bg-secondary text-on-secondary flex items-center justify-center font-bold text-2xl mb-6 shadow-[0_0_20px_rgba(65,238,194,0.5)]">2</div>
-              <h3 className="font-headline-md text-headline-md mb-4 text-white">AI Verifies</h3>
-              <p className="text-on-surface-variant text-sm md:text-base max-w-xs">
+              <h3 className="font-headline-md text-headline-md mb-4 text-white font-bold">AI Verifies</h3>
+              <p className="text-on-surface-variant/90 text-sm md:text-base max-w-xs font-medium">
                 Our system validates the report and routes it to the nearest municipal cleaning crew.
               </p>
             </div>
 
             <div className="text-center flex flex-col items-center reveal relative z-10">
               <div className="w-16 h-16 rounded-full bg-secondary text-on-secondary flex items-center justify-center font-bold text-2xl mb-6 shadow-[0_0_20px_rgba(65,238,194,0.5)]">3</div>
-              <h3 className="font-headline-md text-headline-md mb-4 text-white">Earn Rewards</h3>
-              <p className="text-on-surface-variant text-sm md:text-base max-w-xs">
+              <h3 className="font-headline-md text-headline-md mb-4 text-white font-bold">Earn Rewards</h3>
+              <p className="text-on-surface-variant/90 text-sm md:text-base max-w-xs font-medium">
                 Once confirmed clean, points are dropped into your wallet. Impact made.
               </p>
             </div>
@@ -277,9 +277,9 @@ export default function Landing() {
           </div>
 
           <div className="relative z-10 text-center reveal max-w-4xl mx-auto">
-            <h2 className="font-headline-xl text-headline-xl mb-stack-lg text-white leading-tight">
+            <h2 className="font-headline-xl text-headline-xl sm:text-5xl md:text-6xl mb-stack-lg text-white leading-tight font-black tracking-tight">
               Join the CleanSweep <br />
-              <span className="text-secondary filter drop-shadow-[0_0_8px_rgba(65,238,194,0.3)]">Movement</span>
+              <span className="text-secondary filter drop-shadow-[0_0_12px_rgba(65,238,194,0.4)]">Movement</span>
             </h2>
             <button
               onClick={handleSignIn}
