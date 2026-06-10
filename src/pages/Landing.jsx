@@ -214,7 +214,7 @@ export default function Landing({ session }) {
               </div>
             </div>
 
-            <div className="absolute top-[-10px] right-[-180px] z-20 flex w-[360px] sm:right-[-210px] sm:w-[460px] md:top-[-20px] md:right-[-240px] md:w-[560px] lg:right-[-220px] lg:w-[640px]">
+            <div className="absolute top-[-10px] right-[-180px] z-20 flex w-[360px] sm:right-[-210px] sm:w-[460px] md:top-1/2 md:-translate-y-1/2 md:right-[-240px] md:w-[560px] lg:top-1/2 lg:-translate-y-1/2 lg:right-[-220px] lg:w-[640px]">
               <Globe className="pointer-events-none h-[360px] w-[360px] sm:h-[460px] sm:w-[460px] md:pointer-events-auto md:h-[560px] md:w-[560px] md:cursor-grab md:active:cursor-grabbing lg:h-[640px] lg:w-[640px]" />
             </div>
           </div>
