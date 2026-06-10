@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -271,8 +271,9 @@ function ThreePlanet() {
 
 export default function Home({ session, isAdmin }) {
   const navigate = useNavigate();
+  const routerLocation = useLocation();
   const [profileOpen, setProfileOpen] = useState(false);
-  const [viewMode, setViewMode] = useState('report'); // 'report' | 'explore-map' | 'community'
+  const [viewMode, setViewMode] = useState(routerLocation.state?.viewMode || 'report'); // 'report' | 'explore-map' | 'community'
   const [reportNote, setReportNote] = useState('');
   const [topContributors, setTopContributors] = useState([]);
   const [initialUrlCheckDone, setInitialUrlCheckDone] = useState(false);
@@ -284,6 +285,12 @@ export default function Home({ session, isAdmin }) {
       fetchProfile();
     }
   }, [session, fetchProfile]);
+
+  useEffect(() => {
+    if (routerLocation.state?.viewMode) {
+      setViewMode(routerLocation.state.viewMode);
+    }
+  }, [routerLocation.state]);
 
   // Daily login reward system (runs when session and profile are loaded)
   useEffect(() => {

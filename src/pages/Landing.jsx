@@ -80,7 +80,11 @@ export default function Landing({ session }) {
   };
 
   const handleExploreMap = () => {
-    navigate('/marketplace');
+    if (session) {
+      navigate('/dashboard', { state: { viewMode: 'explore-map' } });
+    } else {
+      navigate('/login');
+    }
   };
 
   const handleReport = () => {
@@ -93,7 +97,7 @@ export default function Landing({ session }) {
 
   const handleCommunity = () => {
     if (session) {
-      navigate('/dashboard');
+      navigate('/dashboard', { state: { viewMode: 'community' } });
     } else {
       navigate('/login');
     }
