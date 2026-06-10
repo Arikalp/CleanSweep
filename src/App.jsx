@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabaseClient';
 import Login from './pages/Login';
 import Home from './pages/Home';
+import Landing from './pages/Landing';
 import Admin from './pages/Admin';
 import Marketplace from './pages/Marketplace';
 import Profile from './pages/Profile';
@@ -60,14 +61,18 @@ function App() {
     <Router>
       <ToastContainer />
       <Routes>
-        <Route path="/login" element={!session ? <Login /> : <Navigate to="/" />} />
-        <Route path="/" element={session ? <Home session={session} isAdmin={isAdmin} /> : <Navigate to="/login" />} />
+        <Route path="/login" element={!session ? <Login /> : <Navigate to="/dashboard" />} />
+        <Route path="/" element={<Landing session={session} />} />
+        <Route
+          path="/dashboard"
+          element={session ? <Home session={session} isAdmin={isAdmin} /> : <Navigate to="/login" />}
+        />
         <Route
           path="/admin"
           element={
             !session ? <Navigate to="/login" /> :
             isAdmin ? <Admin session={session} /> :
-            <Navigate to="/" />
+            <Navigate to="/dashboard" />
           }
         />
         <Route path="/marketplace" element={<Marketplace session={session} />} />
