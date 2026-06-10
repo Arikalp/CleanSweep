@@ -179,14 +179,14 @@ export default function Landing({ session }) {
 
       <main>
         {/* Hero Section */}
-        <section className="relative min-h-screen flex items-center pt-20 px-6 md:px-container-margin-desktop max-w-[1440px] mx-auto">
+        <section className="relative min-h-screen flex items-center pt-28 md:pt-20 px-6 md:px-container-margin-desktop max-w-[1440px] mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-stack-lg items-center w-full">
-            <div className="reveal">
-              <h1 className="font-headline-xl text-headline-xl sm:text-5xl md:text-6xl lg:text-7xl mb-stack-sm leading-tight text-white font-black tracking-tight">
+            <div className="reveal relative z-30 pr-24 sm:pr-28 md:pr-0 md:z-auto">
+              <h1 className="font-headline-xl text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-stack-sm leading-tight text-white font-black tracking-tight">
                 Clean Cities Start <br />
                 <span className="text-secondary filter drop-shadow-[0_0_12px_rgba(65,238,194,0.4)]">With You</span>
               </h1>
-              <p className="text-on-surface-variant/90 font-body-lg text-body-lg mb-stack-lg max-w-xl font-medium leading-relaxed">
+              <p className="text-on-surface-variant/90 font-body-lg text-2xl sm:text-body-lg mb-stack-lg max-w-xl font-medium leading-relaxed">
                 Report garbage, track cleanups, and earn rewards — all in one advanced civic infrastructure platform.
               </p>
               <div className="flex flex-wrap gap-stack-md">
@@ -214,8 +214,8 @@ export default function Landing({ session }) {
               </div>
             </div>
 
-            <div className="absolute top-[-10px] right-[-180px] z-20 flex w-[360px] sm:right-[-210px] sm:w-[460px] md:top-1/2 md:-translate-y-1/2 md:right-[-240px] md:w-[560px] lg:top-1/2 lg:-translate-y-1/2 lg:right-[-220px] lg:w-[640px]">
-              <Globe className="pointer-events-none h-[360px] w-[360px] sm:h-[460px] sm:w-[460px] md:pointer-events-auto md:h-[560px] md:w-[560px] md:cursor-grab md:active:cursor-grabbing lg:h-[640px] lg:w-[640px]" />
+            <div className="absolute top-[64px] right-[-150px] z-10 flex w-[380px] sm:top-[56px] sm:right-[-170px] sm:w-[410px] md:top-1/2 md:-translate-y-1/2 md:right-[-240px] md:w-[560px] md:z-20 lg:top-1/2 lg:-translate-y-1/2 lg:right-[-220px] lg:w-[640px]">
+              <Globe className="pointer-events-none h-[380px] w-[380px] sm:h-[410px] sm:w-[410px] md:pointer-events-auto md:h-[560px] md:w-[560px] md:cursor-grab md:active:cursor-grabbing lg:h-[640px] lg:w-[640px]" />
             </div>
           </div>
         </section>
