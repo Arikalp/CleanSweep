@@ -66,7 +66,7 @@ export default function Login() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (error) {
       console.error('Auth error:', error);
@@ -87,7 +87,7 @@ export default function Login() {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: window.location.origin },
+        options: { redirectTo: window.location.origin + '/dashboard' },
       });
       if (error) throw error;
       // Browser will redirect — no need to navigate manually

@@ -1131,11 +1131,7 @@ export default function Home({ session, isAdmin }) {
       <header className="w-full flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 max-w-4xl bg-slate-800/40 backdrop-blur border border-slate-700/50 px-4 py-3.5 sm:px-5 sm:py-4 rounded-2xl shadow-xl relative z-50">
         <div className="flex items-center justify-between w-full md:w-auto">
           <div 
-            onClick={() => {
-              stopCamera();
-              setStep('camera');
-              setViewMode('report');
-            }}
+            onClick={() => navigate('/')}
             className="flex items-center gap-2.5 cursor-pointer select-none hover:opacity-90 active:scale-95 transition-all"
           >
             <img src="/favicon.svg" className="w-7 h-7 sm:w-8 sm:h-8 filter drop-shadow-[0_0_6px_rgba(5,255,163,0.45)]" alt="CleanSweep Logo" />

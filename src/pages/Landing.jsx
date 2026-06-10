@@ -1,8 +1,55 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Globe from '../components/Globe';
 
-export default function Landing() {
+// Animated count-up component that triggers when scrolled into view
+function CountUp({ end, suffix = '', duration = 2000 }) {
+  const [count, setCount] = useState(0);
+  const [hasStarted, setHasStarted] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasStarted) {
+          setHasStarted(true);
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [hasStarted]);
+
+  useEffect(() => {
+    if (!hasStarted) return;
+
+    let startTime = null;
+    const step = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      // Ease-out cubic for smooth deceleration
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(eased * end));
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        setCount(end);
+      }
+    };
+    requestAnimationFrame(step);
+  }, [hasStarted, end, duration]);
+
+  const formatNumber = (num) => {
+    if (num >= 1000000) return (num / 1000000).toFixed(num % 1000000 === 0 ? 0 : 1) + 'M';
+    return num.toLocaleString();
+  };
+
+  return <span ref={ref}>{formatNumber(count)}{suffix}</span>;
+}
+
+export default function Landing({ session }) {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -36,7 +83,23 @@ export default function Landing() {
     navigate('/marketplace');
   };
 
-  const cleanSweepLogo = "data:image/png;base64,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";
+  const handleReport = () => {
+    if (session) {
+      navigate('/dashboard');
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const handleCommunity = () => {
+    if (session) {
+      navigate('/dashboard');
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const cleanSweepLogo = "data:image/png;base64,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";
 
   return (
     <div className="bg-background text-on-background font-body-md overflow-x-hidden min-h-screen relative">
@@ -47,21 +110,33 @@ export default function Landing() {
       <header className="fixed top-0 w-full z-50 bg-surface/60 backdrop-blur-xl border-b border-secondary/15 shadow-[0_0_20px_rgba(0,212,170,0.1)]">
         <nav className="flex justify-between items-center max-w-[1440px] mx-auto px-6 md:px-container-margin-desktop h-20">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
-            <img alt="CleanSweep Logo" className="h-10 w-10 filter drop-shadow-[0_0_8px_rgba(65,238,194,0.5)]" src={cleanSweepLogo} />
-            <span className="font-headline-md text-headline-md font-extrabold text-on-surface tracking-tighter filter drop-shadow-[0_0_10px_rgba(65,238,194,0.2)]">CleanSweep</span>
+            <img alt="CleanSweep Logo" className="h-10 w-10 filter drop-shadow-[0_0_8px_rgba(5,255,163,0.5)]" src="/favicon.svg" />
+            <span className="font-headline-md text-2xl font-extrabold text-on-surface tracking-tighter filter drop-shadow-[0_0_10px_rgba(65,238,194,0.2)]">CleanSweep</span>
           </div>
 
           <div className="hidden md:flex items-center gap-stack-md">
-            <button onClick={handleSignIn} className="text-on-surface-variant hover:text-secondary transition-colors font-body-md text-body-md bg-transparent border-none cursor-pointer">Report</button>
-            <button onClick={handleExploreMap} className="text-on-surface-variant hover:text-secondary transition-colors font-body-md text-body-md bg-transparent border-none cursor-pointer">Explore Map</button>
-            <button onClick={handleSignIn} className="text-on-surface-variant hover:text-secondary transition-colors font-body-md text-body-md bg-transparent border-none cursor-pointer">Community</button>
-            <button onClick={handleExploreMap} className="text-on-surface-variant hover:text-secondary transition-colors font-body-md text-body-md bg-transparent border-none cursor-pointer">Marketplace</button>
-            <button
-              onClick={handleSignIn}
-              className="ml-4 text-on-secondary bg-secondary rounded-full px-6 py-2 shadow-[0_0_15px_rgba(0,212,170,0.4)] hover:scale-105 active:scale-95 transition-transform cursor-pointer font-semibold"
-            >
-              Sign In
-            </button>
+            {session && (
+              <>
+                <button onClick={handleReport} className="text-on-surface-variant hover:text-secondary transition-colors font-body-md text-body-md bg-transparent border-none cursor-pointer">Report</button>
+                <button onClick={handleExploreMap} className="text-on-surface-variant hover:text-secondary transition-colors font-body-md text-body-md bg-transparent border-none cursor-pointer">Explore Map</button>
+                <button onClick={handleCommunity} className="text-on-surface-variant hover:text-secondary transition-colors font-body-md text-body-md bg-transparent border-none cursor-pointer">Community</button>
+              </>
+            )}
+            {session ? (
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="ml-4 text-on-secondary bg-secondary rounded-full px-6 py-2 shadow-[0_0_15px_rgba(0,212,170,0.4)] hover:scale-105 active:scale-95 transition-transform cursor-pointer font-semibold"
+              >
+                Dashboard
+              </button>
+            ) : (
+              <button
+                onClick={handleSignIn}
+                className="ml-4 text-on-secondary bg-secondary rounded-full px-6 py-2 shadow-[0_0_15px_rgba(0,212,170,0.4)] hover:scale-105 active:scale-95 transition-transform cursor-pointer font-semibold"
+              >
+                Sign In
+              </button>
+            )}
           </div>
 
           <button
@@ -75,16 +150,28 @@ export default function Landing() {
         {/* Mobile Dropdown Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden bg-surface/95 backdrop-blur-xl border-b border-secondary/15 px-6 py-6 flex flex-col gap-4 animate-fade-in">
-            <button onClick={() => { setIsMobileMenuOpen(false); handleSignIn(); }} className="text-left text-on-surface-variant hover:text-secondary py-2 font-body-md text-body-md bg-transparent border-none cursor-pointer">Report</button>
-            <button onClick={() => { setIsMobileMenuOpen(false); handleExploreMap(); }} className="text-left text-on-surface-variant hover:text-secondary py-2 font-body-md text-body-md bg-transparent border-none cursor-pointer">Explore Map</button>
-            <button onClick={() => { setIsMobileMenuOpen(false); handleSignIn(); }} className="text-left text-on-surface-variant hover:text-secondary py-2 font-body-md text-body-md bg-transparent border-none cursor-pointer">Community</button>
-            <button onClick={() => { setIsMobileMenuOpen(false); handleExploreMap(); }} className="text-left text-on-surface-variant hover:text-secondary py-2 font-body-md text-body-md bg-transparent border-none cursor-pointer">Marketplace</button>
-            <button
-              onClick={() => { setIsMobileMenuOpen(false); handleSignIn(); }}
-              className="w-full text-center text-on-secondary bg-secondary rounded-full py-3 shadow-[0_0_15px_rgba(0,212,170,0.4)] font-semibold cursor-pointer"
-            >
-              Sign In
-            </button>
+            {session && (
+              <>
+                <button onClick={() => { setIsMobileMenuOpen(false); handleReport(); }} className="text-left text-on-surface-variant hover:text-secondary py-2 font-body-md text-body-md bg-transparent border-none cursor-pointer">Report</button>
+                <button onClick={() => { setIsMobileMenuOpen(false); handleExploreMap(); }} className="text-left text-on-surface-variant hover:text-secondary py-2 font-body-md text-body-md bg-transparent border-none cursor-pointer">Explore Map</button>
+                <button onClick={() => { setIsMobileMenuOpen(false); handleCommunity(); }} className="text-left text-on-surface-variant hover:text-secondary py-2 font-body-md text-body-md bg-transparent border-none cursor-pointer">Community</button>
+              </>
+            )}
+            {session ? (
+              <button
+                onClick={() => { setIsMobileMenuOpen(false); navigate('/dashboard'); }}
+                className="w-full text-center text-on-secondary bg-secondary rounded-full py-3 shadow-[0_0_15px_rgba(0,212,170,0.4)] font-semibold cursor-pointer"
+              >
+                Dashboard
+              </button>
+            ) : (
+              <button
+                onClick={() => { setIsMobileMenuOpen(false); handleSignIn(); }}
+                className="w-full text-center text-on-secondary bg-secondary rounded-full py-3 shadow-[0_0_15px_rgba(0,212,170,0.4)] font-semibold cursor-pointer"
+              >
+                Sign In
+              </button>
+            )}
           </div>
         )}
       </header>
@@ -102,12 +189,21 @@ export default function Landing() {
                 Report garbage, track cleanups, and earn rewards — all in one advanced civic infrastructure platform.
               </p>
               <div className="flex flex-wrap gap-stack-md">
-                <button
-                  onClick={handleSignIn}
-                  className="bg-secondary text-on-secondary px-8 md:px-12 py-4 rounded-full font-bold btn-glow hover:scale-105 active:scale-95 transition-all cursor-pointer"
-                >
-                  Get Started
-                </button>
+                {session ? (
+                  <button
+                    onClick={() => navigate('/dashboard')}
+                    className="bg-secondary text-on-secondary px-8 md:px-12 py-4 rounded-full font-bold btn-glow hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                  >
+                    Go to Dashboard
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleSignIn}
+                    className="bg-secondary text-on-secondary px-8 md:px-12 py-4 rounded-full font-bold btn-glow hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                  >
+                    Get Started
+                  </button>
+                )}
                 <button
                   onClick={handleExploreMap}
                   className="border border-secondary text-secondary px-8 md:px-12 py-4 rounded-full font-bold hover:bg-secondary/10 hover:scale-105 active:scale-95 transition-all cursor-pointer"
@@ -124,19 +220,25 @@ export default function Landing() {
         </section>
 
         {/* Stats Banner */}
-        <section className="py-stack-lg bg-surface-dim border-y border-secondary/10 reveal">
-          <div className="max-w-[1440px] mx-auto px-6 md:px-container-margin-desktop grid grid-cols-1 md:grid-cols-3 gap-y-10 md:gap-stack-lg text-center">
+        <section className="py-20 md:py-24 bg-surface-dim border-y border-secondary/10 reveal">
+          <div className="max-w-[1440px] mx-auto px-6 md:px-container-margin-desktop grid grid-cols-1 md:grid-cols-3 gap-y-14 md:gap-stack-lg text-center">
             <div>
-              <div className="font-stats-lg text-stats-lg text-secondary mb-2 filter drop-shadow-[0_0_8px_rgba(65,238,194,0.2)]">10,000+</div>
-              <div className="text-on-surface-variant font-label-sm text-label-sm uppercase tracking-widest">Reports Filed</div>
+              <div className="text-5xl md:text-6xl font-black text-secondary mb-3 filter drop-shadow-[0_0_12px_rgba(65,238,194,0.3)] tracking-tight">
+                <CountUp end={10000} suffix="+" duration={2200} />
+              </div>
+              <div className="text-on-surface-variant font-semibold text-sm uppercase tracking-[0.2em]">Reports Filed</div>
             </div>
             <div>
-              <div className="font-stats-lg text-stats-lg text-secondary mb-2 filter drop-shadow-[0_0_8px_rgba(65,238,194,0.2)]">500+</div>
-              <div className="text-on-surface-variant font-label-sm text-label-sm uppercase tracking-widest">Cities Covered</div>
+              <div className="text-5xl md:text-6xl font-black text-secondary mb-3 filter drop-shadow-[0_0_12px_rgba(65,238,194,0.3)] tracking-tight">
+                <CountUp end={500} suffix="+" duration={1800} />
+              </div>
+              <div className="text-on-surface-variant font-semibold text-sm uppercase tracking-[0.2em]">Cities Covered</div>
             </div>
             <div>
-              <div className="font-stats-lg text-stats-lg text-secondary mb-2 filter drop-shadow-[0_0_8px_rgba(65,238,194,0.2)]">1M+</div>
-              <div className="text-on-surface-variant font-label-sm text-label-sm uppercase tracking-widest">Points Redeemed</div>
+              <div className="text-5xl md:text-6xl font-black text-secondary mb-3 filter drop-shadow-[0_0_12px_rgba(65,238,194,0.3)] tracking-tight">
+                <CountUp end={1000000} suffix="+" duration={2500} />
+              </div>
+              <div className="text-on-surface-variant font-semibold text-sm uppercase tracking-[0.2em]">Points Redeemed</div>
             </div>
           </div>
         </section>
@@ -272,22 +374,22 @@ export default function Landing() {
         {/* Footer CTA Section */}
         <section className="relative py-40 px-6 md:px-container-margin-desktop overflow-hidden border-t border-secondary/10 bg-surface-dim">
           {/* Background Watermark Globe */}
-          <div className="absolute inset-0 z-0 flex justify-center items-center opacity-5 pointer-events-none">
-            <span className="material-symbols-outlined text-[300px] sm:text-[450px] md:text-[600px] text-secondary">public</span>
+          <div className="absolute inset-0 z-0 flex justify-center items-center opacity-[0.08] pointer-events-none">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round" className="w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] md:w-[500px] md:h-[500px] text-secondary">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+              <path d="M2 12h20" />
+              <path d="M12 2a10 10 0 0 1 4 7.5A10 10 0 0 1 12 17a10 10 0 0 1-4-7.5A10 10 0 0 1 12 2" />
+              <path d="M4.93 4.93a10 10 0 0 0 14.14 14.14" />
+              <path d="M4.93 19.07a10 10 0 0 1 0-14.14" />
+            </svg>
           </div>
 
           <div className="relative z-10 text-center reveal max-w-4xl mx-auto">
-            <h2 className="font-headline-xl text-headline-xl sm:text-5xl md:text-6xl mb-stack-lg text-white leading-tight font-black tracking-tight">
+            <h2 className="font-headline-xl text-headline-xl sm:text-5xl md:text-6xl text-white leading-tight font-black tracking-tight mb-0">
               Join the CleanSweep <br />
               <span className="text-secondary filter drop-shadow-[0_0_12px_rgba(65,238,194,0.4)]">Movement</span>
             </h2>
-            <button
-              onClick={handleSignIn}
-              className="bg-secondary text-on-secondary px-10 md:px-12 py-5 rounded-full font-bold btn-glow hover:scale-105 active:scale-95 transition-all flex items-center gap-3 mx-auto cursor-pointer"
-            >
-              <span className="material-symbols-outlined">download</span>
-              Download the App
-            </button>
           </div>
         </section>
       </main>

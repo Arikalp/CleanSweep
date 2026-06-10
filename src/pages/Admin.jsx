@@ -560,7 +560,7 @@ export default function Admin({ session }) {
     <div className="min-h-screen bg-slate-900 text-white p-4 sm:p-6 font-sans">
       {/* Header */}
       <header className="flex justify-between items-center max-w-7xl mx-auto mb-8 bg-slate-800/40 backdrop-blur border border-slate-700/50 px-6 py-4 rounded-2xl shadow-xl relative z-50">
-        <div className="flex items-center gap-3">
+        <div onClick={() => navigate('/')} className="flex items-center gap-3 cursor-pointer select-none hover:opacity-90 active:scale-95 transition-all">
           <img src="/favicon.svg" className="w-8 h-8 filter drop-shadow-[0_0_6px_rgba(5,255,163,0.45)]" alt="CleanSweep Logo" />
           <div>
             <h1 className="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2">
