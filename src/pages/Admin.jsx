@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import logo from '../assets/logo.svg';
+import wolframLogo from '../assets/wolfram-logo.svg';
 import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -21,7 +23,13 @@ import {
   Check,
   Compass,
   Clock,
-  Megaphone
+  Megaphone,
+  Route,
+  AlertTriangle,
+  Map,
+  Camera,
+  Plus,
+  LayoutDashboard
 } from 'lucide-react';
 
 const createToastContainer = () => {
@@ -112,6 +120,7 @@ export default function Admin({ session }) {
   const [profileMsg, setProfileMsg] = useState('');
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState('');
 
   // Clearance Modal state
   const [clearingReportId, setClearingReportId] = useState(null);
@@ -135,6 +144,142 @@ export default function Admin({ session }) {
   const userLocMarkerRef = useRef(null);
   const userLocCircleRef = useRef(null);
 
+  // ── Wolfram Route Optimization State ────────────────────────────
+  const [optimizedRoute, setOptimizedRoute] = useState(null);
+  const [routeLoading, setRouteLoading] = useState(false);
+  const [routeError, setRouteError] = useState('');
+  const routePolylineRef = useRef(null);
+  const routeMarkersRef = useRef([]);
+
+  const optimizeRouteWithWolfram = async () => {
+    const pendingReports = reports.filter(r => r.status === 'pending' && r.latitude && r.longitude);
+
+    if (pendingReports.length < 2) {
+      setRouteError('Need at least 2 pending reports with GPS to optimize a route.');
+      return;
+    }
+
+    setRouteLoading(true);
+    setRouteError('');
+    setOptimizedRoute(null);
+
+    // Clear previous route from map
+    if (routePolylineRef.current && mapRef.current) {
+      mapRef.current.removeLayer(routePolylineRef.current);
+      routePolylineRef.current = null;
+    }
+    routeMarkersRef.current.forEach(m => { if (mapRef.current) mapRef.current.removeLayer(m); });
+    routeMarkersRef.current = [];
+
+    const locations = pendingReports.map(r => ({
+      id: r.id,
+      lat: r.latitude,
+      lon: r.longitude
+    }));
+
+    const apiUrl = import.meta.env.VITE_WOLFRAM_ROUTE_API_URL;
+
+    try {
+      let result;
+
+      const fallbackRouting = () => {
+        console.warn('Using local fallback routing.');
+        const ordered = [...locations];
+        const visited = [ordered.shift()];
+        while (ordered.length > 0) {
+          const last = visited[visited.length - 1];
+          let nearest = 0;
+          let minDist = Infinity;
+          ordered.forEach((loc, i) => {
+            const d = Math.sqrt(Math.pow(loc.lat - last.lat, 2) + Math.pow(loc.lon - last.lon, 2));
+            if (d < minDist) { minDist = d; nearest = i; }
+          });
+          visited.push(ordered.splice(nearest, 1)[0]);
+        }
+        let totalDist = 0;
+        for (let i = 0; i < visited.length - 1; i++) {
+          totalDist += Math.sqrt(Math.pow(visited[i+1].lat - visited[i].lat, 2) + Math.pow(visited[i+1].lon - visited[i].lon, 2)) * 111;
+        }
+        return {
+          orderedRoute: visited.map((v, i) => ({ ...v, stop: i + 1 })),
+          totalDistanceKm: Math.round(totalDist * 10) / 10,
+          numberOfStops: visited.length,
+          algorithm: 'Nearest-Neighbor Heuristic (Local Fallback)',
+          poweredBy: 'Local JavaScript Fallback'
+        };
+      };
+
+      if (!apiUrl || apiUrl.includes('your_')) {
+        result = fallbackRouting();
+      } else {
+        const formData = new URLSearchParams();
+        formData.append('locations', JSON.stringify(locations));
+
+        try {
+          const res = await fetch(apiUrl, {
+            method: 'POST',
+            body: formData
+          });
+          if (!res.ok) throw new Error(`Wolfram API error: ${res.status}`);
+          result = await res.json();
+        } catch (fetchErr) {
+          console.warn('Wolfram API failed, falling back to local routing:', fetchErr);
+          result = fallbackRouting();
+        }
+      }
+
+      setOptimizedRoute(result);
+
+      // Draw the route on the Leaflet map
+      if (mapRef.current && result.orderedRoute) {
+        const coords = result.orderedRoute.map(p => [p.lat, p.lon]);
+
+        // Draw polyline
+        const polyline = L.polyline(coords, {
+          color: '#DD1100',
+          weight: 4,
+          opacity: 0.85,
+          dashArray: '12, 8',
+          className: 'route-line'
+        }).addTo(mapRef.current);
+        routePolylineRef.current = polyline;
+
+        // Add numbered stop markers
+        result.orderedRoute.forEach((stop) => {
+          const marker = L.marker([stop.lat, stop.lon], {
+            icon: L.divIcon({
+              className: 'wolfram-stop-marker',
+              html: `<div style="
+                background: #DD1100;
+                color: white;
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 11px;
+                font-weight: 900;
+                border: 2px solid white;
+                box-shadow: 0 2px 8px rgba(221,17,0,0.5);
+              ">${stop.stop}</div>`,
+              iconSize: [24, 24],
+              iconAnchor: [12, 12]
+            })
+          }).addTo(mapRef.current);
+          routeMarkersRef.current.push(marker);
+        });
+
+        mapRef.current.fitBounds(polyline.getBounds().pad(0.15));
+      }
+    } catch (err) {
+      console.error('Route optimization error:', err);
+      setRouteError(err.message || 'Failed to optimize route.');
+    } finally {
+      setRouteLoading(false);
+    }
+  };
+
   // Load configuration and data on mount
   useEffect(() => {
     // Load user profile details
@@ -144,11 +289,14 @@ export default function Admin({ session }) {
       }, 0);
       supabase
         .from('profiles')
-        .select('full_name')
+        .select('full_name, avatar_url')
         .eq('id', session.user.id)
         .single()
         .then(({ data }) => {
           if (data?.full_name) setProfileName(data.full_name);
+          const googleAvatar = session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture;
+          const finalAvatar = data?.avatar_url || googleAvatar || '';
+          setProfileAvatarUrl(finalAvatar);
         });
     }
 
@@ -476,6 +624,22 @@ export default function Admin({ session }) {
     }
   };
 
+  const handleManualVerify = async (reportId) => {
+    try {
+      const { error } = await supabase
+        .from('reports')
+        .update({ confidence: 1.0, admin_note: 'Classification manually verified by Admin' })
+        .eq('id', reportId);
+      if (error) throw error;
+      setReports((prev) =>
+        prev.map((r) => (r.id === reportId ? { ...r, confidence: 1.0, admin_note: 'Classification manually verified by Admin' } : r))
+      );
+      showToast('Report classification verified successfully!', 'success');
+    } catch (err) {
+      showToast(`Error verifying: ${err.message}`, 'error');
+    }
+  };
+
   const handleSaveNotify = (e) => {
     e.preventDefault();
     localStorage.setItem('notificationConfig', JSON.stringify({ email: notifyEmail, phone: notifyPhone }));
@@ -491,11 +655,8 @@ export default function Admin({ session }) {
     try {
       const { error } = await supabase
         .from('profiles')
-        .upsert({
-          id: session.user.id,
-          full_name: profileName,
-          updated_at: new Date().toISOString()
-        }, { onConflict: ['id'] });
+        .update({ full_name: profileName })
+        .eq('id', session.user.id);
 
       if (error) throw error;
       setProfileMsg('✅ Profile updated successfully!');
@@ -571,11 +732,11 @@ export default function Admin({ session }) {
     : null;
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-4 sm:p-6 font-sans">
+    <div className="min-h-screen bg-slate-900 text-white p-4 sm:p-6 pb-24 md:pb-6 font-sans">
       {/* Header */}
       <header className="flex justify-between items-center max-w-7xl mx-auto mb-8 bg-slate-800/40 backdrop-blur border border-slate-700/50 px-6 py-4 rounded-2xl shadow-xl relative z-50">
         <div onClick={() => navigate('/')} className="flex items-center gap-3 cursor-pointer select-none hover:opacity-90 active:scale-95 transition-all">
-          <img src="/favicon.svg" className="w-8 h-8 filter drop-shadow-[0_0_6px_rgba(5,255,163,0.45)]" alt="CleanSweep Logo" />
+          <img src={logo} className="w-8 h-8 filter drop-shadow-[0_0_6px_rgba(5,255,163,0.45)]" alt="CleanSweep Logo" />
           <div>
             <h1 className="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2">
               CleanSweep <span className="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">Admin</span>
@@ -596,9 +757,15 @@ export default function Admin({ session }) {
           <div className="relative">
             <button 
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-              className="flex items-center gap-2 bg-slate-705 hover:bg-slate-700 px-4 py-2 rounded-xl text-sm font-semibold transition border border-slate-700/60 cursor-pointer"
+              className="flex items-center gap-2 bg-slate-705 hover:bg-slate-700 px-3 py-1.5 rounded-xl text-sm font-semibold transition border border-slate-700/60 cursor-pointer overflow-hidden"
             >
-              <User size={16} />
+              <div className="w-6 h-6 rounded-full flex items-center justify-center overflow-hidden bg-slate-800 shrink-0">
+                {profileAvatarUrl ? (
+                  <img src={profileAvatarUrl} alt="profile" className="w-full h-full object-cover" />
+                ) : (
+                  <User size={14} className="text-emerald-400" />
+                )}
+              </div>
               <span className="hidden sm:inline">{profileName || session?.user?.email}</span>
             </button>
             
@@ -1033,7 +1200,58 @@ export default function Admin({ session }) {
       </main>
 
       {/* Reports Listing Section (Full width split layouts) */}
-      <section className="max-w-7xl mx-auto mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+      <section className="max-w-7xl mx-auto mt-8 space-y-6">
+
+        {/* ── Wolfram Route Optimization Panel ───────────── */}
+        <div className="bg-gradient-to-r from-[#DD1100]/10 via-slate-800/40 to-slate-800/40 border border-[#DD1100]/30 p-5 rounded-2xl shadow-lg">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <h2 className="text-base font-extrabold flex items-center gap-2">
+                <img src={wolframLogo} alt="Wolfram" className="w-5 h-5" />
+                Wolfram Route Optimizer
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Uses Wolfram's <code className="text-[#DD1100]/80 bg-[#DD1100]/10 px-1 rounded">FindShortestTour</code> to compute the most fuel-efficient garbage truck route across all pending reports.
+              </p>
+            </div>
+
+            <button
+              onClick={optimizeRouteWithWolfram}
+              disabled={routeLoading}
+              className="bg-[#DD1100] hover:bg-[#BB0E00] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold px-6 py-2.5 rounded-xl text-xs transition-all flex items-center gap-2 shadow-lg shadow-[#DD1100]/20"
+            >
+              {routeLoading ? (
+                <><div className="spinner" style={{ width: 14, height: 14 }} /> Computing Optimal Route...</>
+              ) : (
+                <><Route size={14} /> Optimize Route</>
+              )}
+            </button>
+          </div>
+
+          {routeError && (
+            <p className="text-xs text-red-400 mt-3 font-medium">{routeError}</p>
+          )}
+
+          {optimizedRoute && (
+            <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="bg-slate-900/60 rounded-xl p-3 border border-slate-700/40">
+                <div className="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Stops</div>
+                <div className="text-lg font-black text-white">{optimizedRoute.numberOfStops}</div>
+              </div>
+              <div className="bg-slate-900/60 rounded-xl p-3 border border-slate-700/40">
+                <div className="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Total Distance</div>
+                <div className="text-lg font-black text-emerald-400">{optimizedRoute.totalDistanceKm} km</div>
+              </div>
+              <div className="bg-slate-900/60 rounded-xl p-3 border border-slate-700/40 col-span-2">
+                <div className="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Algorithm</div>
+                <div className="text-xs font-bold text-[#DD1100] mt-0.5">{optimizedRoute.algorithm}</div>
+                <div className="text-[9px] text-slate-600 italic mt-1">{optimizedRoute.poweredBy}</div>
+              </div>
+            </div>
+          )}
+        </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         {/* Active Reports List */}
         <div className="bg-slate-800/30 border border-slate-700/40 p-5 rounded-2xl shadow-lg flex flex-col max-h-[500px]">
@@ -1082,6 +1300,18 @@ export default function Admin({ session }) {
                           <CheckCircle size={10} /> Mark Cleared
                         </button>
                       )}
+                      
+                      {/* Manual Verify button for low confidence AI results */}
+                      {(report.confidence !== null && report.confidence < 0.8) && (
+                        <button 
+                          onClick={() => handleManualVerify(report.id)}
+                          className="bg-amber-600/90 hover:bg-amber-500 text-white font-semibold text-[10px] px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition"
+                          title={`AI Confidence was low (${(report.confidence * 100).toFixed(0)}%)`}
+                        >
+                          <AlertTriangle size={10} /> Verify AI
+                        </button>
+                      )}
+
                       <button 
                         onClick={() => handleStatusChange(report.id, 'archived')}
                         className="bg-slate-700 hover:bg-slate-600 text-slate-300 font-semibold text-[10px] px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition border border-slate-600/50"
@@ -1148,6 +1378,7 @@ export default function Admin({ session }) {
           </div>
         </div>
 
+      </div>
       </section>
 
       {/* Admin Profile Edit Modal */}
@@ -1243,6 +1474,34 @@ export default function Admin({ session }) {
           </div>
         </div>
       )}
+
+      {/* ── Mobile Bottom Nav (Matching DashboardOverview/Home) ── */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 flex justify-between items-center px-6 py-3 z-[6000]"
+        style={{ background: 'rgba(17,20,18,0.85)', backdropFilter: 'blur(16px)', borderTop: '1px solid rgba(65,238,194,0.15)' }}
+      >
+        {[
+          { label: 'Home', icon: LayoutDashboard, action: () => navigate('/dashboard') },
+          { label: 'Map', icon: Map, action: () => navigate('/dashboard/report', { state: { viewMode: 'explore-map' } }) },
+          { label: '', icon: Plus, action: () => navigate('/dashboard/new-report'), isCenter: true },
+          { label: 'Social', icon: Megaphone, action: () => navigate('/dashboard/report', { state: { viewMode: 'community' } }) },
+          { label: 'Profile', icon: User, action: () => navigate('/profile'), isActive: false },
+        ].map(({ label, icon: Icon, action, isCenter }, i) => (
+          <button
+            key={i}
+            onClick={action}
+            className="flex flex-col items-center gap-1 transition-all"
+            style={isCenter ? {
+              width: 48, height: 48, borderRadius: '50%', background: '#41eec2',
+              color: '#002118', boxShadow: '0 0 15px rgba(65,238,194,0.5)', marginTop: -20,
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            } : { color: '#c4c6cc' }}
+          >
+            <Icon size={isCenter ? 22 : 20} />
+            {label && <span className="text-[10px] font-bold">{label}</span>}
+          </button>
+        ))}
+      </nav>
 
     </div>
   );
